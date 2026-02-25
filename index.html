@@ -168,7 +168,6 @@
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.5);
       padding: 6px 10px;
-      margin-left: 8px;
       background: rgba(255, 255, 255, 0.8);
       color: #0f172a;
       font-size: 0.78rem;
@@ -199,6 +198,71 @@
       background: linear-gradient(90deg, var(--accent), var(--warm));
       transform-origin: left;
       transition: width 0.1s linear;
+    }
+
+    .nav-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      padding: 0;
+      margin-left: auto;
+    }
+
+    .nav-toggle-box {
+      position: relative;
+      width: 15px;
+      height: 12px;
+    }
+
+    .nav-toggle-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: #0f172a;
+      transition: transform 0.2s ease, opacity 0.2s ease, top 0.2s ease, bottom 0.2s ease;
+    }
+
+    .nav-toggle-line:nth-child(1) {
+      top: 0;
+    }
+
+    .nav-toggle-line:nth-child(2) {
+      top: 5px;
+    }
+
+    .nav-toggle-line:nth-child(3) {
+      bottom: 0;
+    }
+
+    body.theme-dark .nav-toggle {
+      background: rgba(15, 23, 42, 0.98);
+      border-color: rgba(148, 163, 184, 0.85);
+    }
+
+    body.theme-dark .nav-toggle-line {
+      background: #e5ecff;
+    }
+
+    body.nav-open .nav-toggle-line:nth-child(1) {
+      top: 5px;
+      transform: rotate(45deg);
+    }
+
+    body.nav-open .nav-toggle-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    body.nav-open .nav-toggle-line:nth-child(3) {
+      bottom: 5px;
+      transform: rotate(-45deg);
     }
 
     main {
@@ -650,8 +714,9 @@
 
     @media (max-width: 720px) {
       .topbar-inner {
+        position: relative;
         min-height: 58px;
-        align-items: flex-start;
+        align-items: center;
         padding: 10px 0;
       }
 
@@ -659,9 +724,42 @@
         font-size: 0.8rem;
       }
 
+      .nav-toggle {
+        display: inline-flex;
+      }
+
+      .nav {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 8px;
+        padding: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        background: var(--card);
+        border-radius: 14px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.38);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        display: none;
+        z-index: 25;
+      }
+
       .nav a {
-        font-size: 0.78rem;
-        padding: 6px 8px;
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        width: 100%;
+      }
+
+      .theme-toggle {
+        width: 100%;
+        margin-top: 6px;
+        text-align: left;
+        justify-content: flex-start;
+      }
+
+      body.nav-open .nav {
+        display: flex;
       }
 
       main {
@@ -681,6 +779,13 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">&lt;Tej Narayan Singh /&gt;</div>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="nav-toggle-box">
+          <span class="nav-toggle-line"></span>
+          <span class="nav-toggle-line"></span>
+          <span class="nav-toggle-line"></span>
+        </span>
+      </button>
       <nav class="nav" id="nav">
         <a href="#home" class="active">Home</a>
         <a href="#what">What I Do</a>
@@ -706,7 +811,7 @@
         </p>
         <div class="cta-row">
           <a class="btn btn-primary" href="#contact">Contact Me</a>
-          <a class="btn btn-soft" href="3dportfolio.html">See 3D Resume</a>
+          <!-- <a class="btn btn-soft" href="3dportfolio.html">See 3D Resume</a> -->
         </div>
       </div>
       <aside class="hero-card">
@@ -893,6 +998,7 @@
       const tiltCards = Array.from(document.querySelectorAll(".tilt-card"));
       const progressBar = document.querySelector(".scroll-progress");
       const backToTop = document.querySelector(".back-to-top");
+      const navToggle = document.querySelector(".nav-toggle");
 
       const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       const storedTheme = window.localStorage ? localStorage.getItem("theme") : null;
@@ -911,9 +1017,9 @@
       themeToggle.setAttribute("aria-label", "Toggle dark mode");
       themeToggle.textContent = document.body.classList.contains("theme-dark") ? "Light mode" : "Dark mode";
 
-      const topbarInner = document.querySelector(".topbar-inner");
-      if (topbarInner) {
-        topbarInner.appendChild(themeToggle);
+      const navEl = document.getElementById("nav");
+      if (navEl) {
+        navEl.appendChild(themeToggle);
       }
 
       themeToggle.addEventListener("click", () => {
@@ -1001,6 +1107,24 @@
           window.scrollTo({ top: 0, behavior: "smooth" });
         });
       }
+
+      if (navToggle) {
+        navToggle.addEventListener("click", () => {
+          const isOpen = document.body.classList.toggle("nav-open");
+          navToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+      }
+
+      navLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          if (document.body.classList.contains("nav-open")) {
+            document.body.classList.remove("nav-open");
+            if (navToggle) {
+              navToggle.setAttribute("aria-expanded", "false");
+            }
+          }
+        });
+      });
 
       window.addEventListener("scroll", handleScroll, { passive: true });
       handleScroll();
