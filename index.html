@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tej Narayan Singh | 3D Interactive Resume</title>
+  <style>
+    :root {
+      --bg-0: #04090f;
+      --bg-1: #0d1f2e;
+      --bg-2: #1b3c50;
+      --panel-a: rgba(11, 29, 42, 0.9);
+      --panel-b: rgba(19, 47, 64, 0.66);
+      --line: rgba(155, 245, 228, 0.28);
+      --text: #ecf8ff;
+      --muted: #b4c8d9;
+      --accent: #87f7dd;
+      --accent-2: #ffd28e;
+      --danger: #ff9d81;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Avenir Next", "Gill Sans", "Trebuchet MS", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 8%, rgba(122, 209, 255, 0.3), transparent 45%),
+        radial-gradient(circle at 90% 88%, rgba(255, 184, 123, 0.17), transparent 35%),
+        linear-gradient(145deg, var(--bg-0), var(--bg-1) 58%, var(--bg-2));
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #stars {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events: none;
+    }
+
+    .fog {
+      position: fixed;
+      inset: -40vh -20vw;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        conic-gradient(from 180deg at 60% 45%, rgba(131, 247, 221, 0.17), transparent 35%, rgba(255, 210, 142, 0.13), transparent 60%);
+      filter: blur(60px);
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate3d(-2vw, -1vh, 0) rotate(-4deg);
+      }
+      to {
+        transform: translate3d(2vw, 2vh, 0) rotate(5deg);
+      }
+    }
+
+    .app {
+      width: min(1120px, 95vw);
+      margin: 0 auto;
+      padding: 28px 0 26px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      background: linear-gradient(120deg, rgba(8, 24, 34, 0.75), rgba(20, 50, 66, 0.34));
+      border-radius: 20px;
+      padding: 18px 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero .role {
+      margin: 6px 0 0;
+      color: var(--accent-2);
+      font-weight: 600;
+    }
+
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(145, 221, 255, 0.3);
+      color: #dff4ff;
+      text-decoration: none;
+      padding: 7px 12px;
+      font-size: 0.88rem;
+      background: rgba(6, 17, 28, 0.46);
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 210, 142, 0.7);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .controls button {
+      cursor: pointer;
+      border-radius: 11px;
+      border: 1px solid rgba(136, 184, 209, 0.45);
+      background: rgba(5, 16, 26, 0.66);
+      color: var(--muted);
+      font-family: "Menlo", "Consolas", "Courier New", monospace;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+      padding: 8px 11px;
+      transition: all 0.25s ease;
+    }
+
+    .controls button:hover,
+    .controls button.active {
+      color: #031119;
+      background: linear-gradient(120deg, var(--accent), #9ed0ff);
+      border-color: transparent;
+      box-shadow: 0 5px 20px rgba(113, 217, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .status {
+      margin-top: 10px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.87rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .status span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .scene {
+      width: 100%;
+      margin: 16px auto 8px;
+      height: min(72vh, 660px);
+      perspective: 1800px;
+      position: relative;
+      touch-action: pan-y;
+    }
+
+    .ring {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    .panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(78vw, 590px);
+      height: clamp(320px, 62vh, 500px);
+      padding: 18px 18px 16px;
+      border-radius: 19px;
+      border: 1px solid rgba(177, 235, 255, 0.24);
+      background: linear-gradient(150deg, var(--panel-a), var(--panel-b));
+      box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.45),
+        inset 0 0 45px rgba(87, 168, 197, 0.08);
+      backdrop-filter: blur(8px);
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(134, 221, 255, 0.55) rgba(16, 30, 43, 0.4);
+      transition: border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .panel::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .panel::-webkit-scrollbar-track {
+      background: rgba(6, 14, 20, 0.55);
+      border-radius: 999px;
+    }
+
+    .panel::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(140, 216, 245, 0.6);
+    }
+
+    .panel.is-active {
+      border-color: rgba(135, 247, 221, 0.68);
+      box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.53),
+        inset 0 0 50px rgba(127, 247, 221, 0.14),
+        0 0 42px rgba(127, 247, 221, 0.2);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.22rem;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .panel h3 {
+      margin: 14px 0 6px;
+      font-size: 1rem;
+      color: #ffe2b4;
+      letter-spacing: 0.01em;
+    }
+
+    .panel p {
+      margin: 0 0 8px;
+      color: #e8f4ff;
+      line-height: 1.45;
+    }
+
+    .panel ul {
+      margin: 6px 0 0;
+      padding-left: 18px;
+      color: #d6e8f5;
+    }
+
+    .panel li {
+      margin-bottom: 6px;
+      line-height: 1.38;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .metric {
+      border: 1px solid rgba(152, 212, 240, 0.32);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(4, 19, 31, 0.45);
+    }
+
+    .metric strong {
+      display: block;
+      color: var(--accent-2);
+      font-size: 1rem;
+      margin-bottom: 3px;
+    }
+
+    .metric span {
+      color: #cce2f0;
+      font-size: 0.87rem;
+      line-height: 1.3;
+    }
+
+    .job {
+      border-left: 2px solid rgba(135, 247, 221, 0.42);
+      padding-left: 12px;
+      margin-top: 12px;
+    }
+
+    .job .head {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 5px 14px;
+      margin-bottom: 2px;
+    }
+
+    .job .head strong {
+      color: #f8fcff;
+      font-size: 1rem;
+    }
+
+    .job .head span {
+      color: #cfe6f5;
+      font-size: 0.86rem;
+    }
+
+    .job .label {
+      color: #ffce97;
+      font-size: 0.84rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .tag-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tag {
+      font-family: "Menlo", "Consolas", "Courier New", monospace;
+      font-size: 0.82rem;
+      border: 1px solid rgba(164, 211, 238, 0.34);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(5, 16, 26, 0.53);
+    }
+
+    .edu-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 5px 12px;
+      margin-bottom: 5px;
+      border-bottom: 1px dashed rgba(160, 207, 232, 0.28);
+      padding-bottom: 8px;
+    }
+
+    .edu-row strong {
+      color: #f5fbff;
+    }
+
+    .edu-row span {
+      color: #cfe5f4;
+      font-size: 0.88rem;
+    }
+
+    .warn {
+      color: var(--danger);
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    .hint {
+      text-align: center;
+      color: rgba(212, 232, 245, 0.72);
+      margin: 8px auto 2px;
+      font-size: 0.85rem;
+      letter-spacing: 0.01em;
+    }
+
+    @media (max-width: 780px) {
+      .app {
+        width: min(100vw, 100%);
+        padding: 14px 10px 18px;
+      }
+
+      .hero {
+        border-radius: 16px;
+        padding: 14px;
+      }
+
+      .scene {
+        height: min(70vh, 580px);
+      }
+
+      .panel {
+        width: min(92vw, 640px);
+        height: clamp(300px, 61vh, 460px);
+        padding: 14px 13px;
+      }
+
+      .split {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <div class="fog"></div>
+
+  <main class="app">
+    <header class="hero">
+      <h1>Tej Narayan Singh</h1>
+      <p class="role">Software Development Engineer II | Backend Systems</p>
+      <div class="hero-links">
+        <a class="chip" href="mailto:tejnarayan950@gmail.com">tejnarayan950@gmail.com</a>
+        <a class="chip" href="tel:+918510099988">+91 8510099988</a>
+        <a class="chip" href="https://linkedin.com/in/tej-narayan-singh" target="_blank" rel="noreferrer noopener">linkedin.com/in/tej-narayan-singh</a>
+        <a class="chip" href="https://github.com/teji307" target="_blank" rel="noreferrer noopener">github.com/teji307</a>
+      </div>
+    </header>
+
+    <div class="controls" id="controls">
+      <button data-index="0" class="active">Summary</button>
+      <button data-index="1">Experience</button>
+      <button data-index="2">Projects</button>
+      <button data-index="3">Skills</button>
+      <button data-index="4">Education</button>
+      <button data-index="5">Achievements</button>
+      <button data-index="6">Contact</button>
+    </div>
+
+    <p class="status">Active section: <span id="activeLabel">Summary</span></p>
+
+    <section class="scene" id="scene">
+      <div class="ring" id="ring">
+        <article class="panel is-active" data-label="Summary">
+          <h2>Professional Summary</h2>
+          <p>
+            Backend Software Engineer with 2.8+ years of experience designing scalable, low-latency distributed
+            systems for high-traffic consumer platforms. Strong expertise in Java, Kafka, Spark, Redis, and Kubernetes.
+            Experienced in real-time processing, system design, performance optimization, and large-scale data workflows.
+          </p>
+          <div class="split">
+            <div class="metric">
+              <strong>2.8+ Years</strong>
+              <span>Production backend engineering experience</span>
+            </div>
+            <div class="metric">
+              <strong>Current Role</strong>
+              <span>Software Development Engineer II at Flipkart</span>
+            </div>
+            <div class="metric">
+              <strong>Core Focus</strong>
+              <span>Distributed architecture, resiliency, and throughput optimization</span>
+            </div>
+            <div class="metric">
+              <strong>Stack Strength</strong>
+              <span>Java, Kafka, Spark, Redis, Kubernetes</span>
+            </div>
+          </div>
+          <h3>What I Build</h3>
+          <ul>
+            <li>Scalable backend services for high-volume user traffic.</li>
+            <li>Data-driven lifecycle workflows that reduce clutter and improve conversion.</li>
+            <li>Automation pipelines replacing static rule-based systems with dynamic logic.</li>
+          </ul>
+        </article>
+
+        <article class="panel" data-label="Experience">
+          <h2>Work Experience</h2>
+          <div class="job">
+            <div class="head">
+              <strong>Flipkart - Software Development Engineer II</strong>
+              <span>June 2023 - Present</span>
+            </div>
+            <p class="label">Multi-Clickable Banner Framework</p>
+            <ul>
+              <li>Led backend implementation enabling multiple URLs per banner with independent health validation.</li>
+              <li>Redesigned data models to keep backward compatibility and atomic updates; coordinated cross-team homepage rollout.</li>
+            </ul>
+            <p class="label">Automated Product-Based Banner Generation</p>
+            <ul>
+              <li>Designed and implemented automated banner generation, replacing static rule-based flows with dynamic product-driven logic.</li>
+            </ul>
+            <p class="label">Archival System</p>
+            <ul>
+              <li>Built an automated archival pipeline based on performance thresholds.</li>
+              <li>Reduced homepage clutter and improved banner efficiency via data-driven lifecycle management.</li>
+            </ul>
+            <p class="label">XtraSaver Banner Enablement (Flipkart Minutes XtraSaver)</p>
+            <ul>
+              <li>Developed offer-trigger-based activation logic with dynamic thresholds.</li>
+              <li>Implemented cache-aware validation for consistency under high traffic conditions.</li>
+            </ul>
+          </div>
+          <div class="job">
+            <div class="head">
+              <strong>S&amp;P Global - Intern</strong>
+              <span>June 2022 - July 2022</span>
+            </div>
+            <ul>
+              <li>Contributed to migration of relational databases from PostgreSQL to MySQL including schema adaptation and query validation.</li>
+              <li>Assisted in debugger tools for internal banking delivery platforms to analyze query performance and resolve system inconsistencies (Control Plane tool).</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="panel" data-label="Projects">
+          <h2>Personal Projects</h2>
+          <div class="job">
+            <div class="head">
+              <strong>Cashflow Supplier &amp; Expiry Reorder Assistant</strong>
+            </div>
+            <ul>
+              <li>Designed an inventory optimization assistant with demand forecasting, safety stock modeling, and expiry-aware reorder logic.</li>
+              <li>Built event-driven architecture for actionable stock and supplier decision recommendations.</li>
+            </ul>
+          </div>
+          <div class="job">
+            <div class="head">
+              <strong>TestPaper</strong>
+            </div>
+            <ul>
+              <li>Developed AI-powered question generation and tagging pipeline with a unified MySQL schema for scalable storage and retrieval.</li>
+              <li>Built dynamic question paper engine adapting to module, difficulty, and topic context.</li>
+              <li>Implemented evaluation and result annotation with subject-wise insights and personalized study recommendations.</li>
+            </ul>
+          </div>
+          <h3>Engineering Themes</h3>
+          <div class="tag-grid">
+            <span class="tag">Event-Driven Design</span>
+            <span class="tag">Forecasting Logic</span>
+            <span class="tag">AI Pipeline</span>
+            <span class="tag">MySQL Data Modeling</span>
+            <span class="tag">Recommendation Systems</span>
+          </div>
+        </article>
+
+        <article class="panel" data-label="Skills">
+          <h2>Skills</h2>
+          <h3>Languages</h3>
+          <div class="tag-grid">
+            <span class="tag">C++</span>
+            <span class="tag">Java</span>
+            <span class="tag">Python</span>
+            <span class="tag">Golang</span>
+          </div>
+
+          <h3>Databases</h3>
+          <div class="tag-grid">
+            <span class="tag">MySQL</span>
+            <span class="tag">MongoDB</span>
+            <span class="tag">Aerospike</span>
+            <span class="tag">Redis</span>
+          </div>
+
+          <h3>Cloud and Platform</h3>
+          <div class="tag-grid">
+            <span class="tag">GCS</span>
+            <span class="tag">GCP</span>
+            <span class="tag">FCP (Flipkart Cloud Platform)</span>
+          </div>
+
+          <h3>Design and Frameworks</h3>
+          <div class="tag-grid">
+            <span class="tag">DSA</span>
+            <span class="tag">OOP</span>
+            <span class="tag">Kafka</span>
+            <span class="tag">Storm</span>
+            <span class="tag">DropWizard</span>
+            <span class="tag">Spark</span>
+          </div>
+
+          <h3>AI Tools</h3>
+          <div class="tag-grid">
+            <span class="tag">Copilot</span>
+            <span class="tag">Cursor</span>
+          </div>
+        </article>
+
+        <article class="panel" data-label="Education">
+          <h2>Education</h2>
+          <div class="edu-row">
+            <div>
+              <strong>Netaji Subhas University of Technology (Main Campus), Delhi</strong>
+              <span>B.Tech - Information Technology</span>
+            </div>
+            <div>
+              <strong>Aug 2019 - May 2023</strong>
+              <span>GPA: 7.51</span>
+            </div>
+          </div>
+          <div class="edu-row">
+            <div>
+              <strong>Govt. Co-ed School, A-6 Paschim Vihar, Delhi</strong>
+              <span>Class XII (C.B.S.E.)</span>
+            </div>
+            <div>
+              <strong>2018 - 2019</strong>
+              <span>76.60%</span>
+            </div>
+          </div>
+          <h3>Academic Direction</h3>
+          <ul>
+            <li>Strong foundation in algorithms, object-oriented design, and system architecture.</li>
+            <li>Applied backend and data systems thinking in both internship and production roles.</li>
+          </ul>
+        </article>
+
+        <article class="panel" data-label="Achievements">
+          <h2>Awards and Achievements</h2>
+          <ul>
+            <li>Secured Global Rank 1034 in Google Kick Start Round A.</li>
+            <li>Achieved World Rank 8232 in Google Hash Code.</li>
+            <li>Selected for national-level presentation at Philips Healthcare for an ML-based disease prediction solution.</li>
+          </ul>
+          <h3>Signals</h3>
+          <div class="split">
+            <div class="metric">
+              <strong>Competitive Coding</strong>
+              <span>Consistent performance on global coding platforms.</span>
+            </div>
+            <div class="metric">
+              <strong>Applied ML</strong>
+              <span>Recognized presentation work in healthcare use case.</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel" data-label="Contact">
+          <h2>Contact and Profiles</h2>
+          <p>Open to backend engineering opportunities, distributed systems challenges, and high-scale platform work.</p>
+          <div class="tag-grid">
+            <a class="chip" href="mailto:tejnarayan950@gmail.com">Email: tejnarayan950@gmail.com</a>
+            <a class="chip" href="tel:+918510099988">Phone: +91 8510099988</a>
+            <a class="chip" href="https://linkedin.com/in/tej-narayan-singh" target="_blank" rel="noreferrer noopener">LinkedIn Profile</a>
+            <a class="chip" href="https://github.com/teji307" target="_blank" rel="noreferrer noopener">GitHub Profile</a>
+          </div>
+          <h3>Quick Highlights</h3>
+          <ul>
+            <li>Current: SDE II at Flipkart</li>
+            <li>Specialty: Backend architecture for high-traffic systems</li>
+            <li>Preferred domains: consumer platforms, data infrastructure, distributed workflows</li>
+          </ul>
+          <p class="warn">Tip: Drag horizontally or use section buttons to rotate the 3D resume.</p>
+        </article>
+      </div>
+    </section>
+
+    <p class="hint">Drag to rotate | Scroll inside a card for details | Tap section buttons to jump</p>
+  </main>
+
+  <script>
+    (function () {
+      const scene = document.getElementById("scene");
+      const ring = document.getElementById("ring");
+      const panels = Array.from(document.querySelectorAll(".panel"));
+      const controls = Array.from(document.querySelectorAll(".controls button"));
+      const activeLabel = document.getElementById("activeLabel");
+
+      const state = {
+        angle: 360 / panels.length,
+        radius: 480,
+        target: 0,
+        current: 0,
+        active: 0,
+        dragging: false,
+        startX: 0,
+        startTarget: 0,
+        autoRotateTimer: null
+      };
+
+      function mod(num, total) {
+        return ((num % total) + total) % total;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function updateControls(index) {
+        state.active = mod(index, panels.length);
+        controls.forEach(function (btn, idx) {
+          btn.classList.toggle("active", idx === state.active);
+        });
+        panels.forEach(function (panel, idx) {
+          panel.classList.toggle("is-active", idx === state.active);
+        });
+        activeLabel.textContent = panels[state.active].dataset.label || "Section";
+      }
+
+      function nearestIndex(rotation) {
+        return mod(Math.round(-rotation / state.angle), panels.length);
+      }
+
+      function snapTo(index, syncCurrent) {
+        state.target = -(mod(index, panels.length) * state.angle);
+        if (syncCurrent) {
+          state.current = state.target;
+        }
+        updateControls(index);
+      }
+
+      function layoutPanels(syncCurrent) {
+        state.radius = clamp(Math.round(window.innerWidth * 0.56), 290, 640);
+        panels.forEach(function (panel, idx) {
+          panel.style.transform =
+            "translate(-50%, -50%) rotateY(" + (idx * state.angle) + "deg) translateZ(" + state.radius + "px)";
+        });
+        snapTo(state.active, syncCurrent);
+      }
+
+      function animate() {
+        state.current += (state.target - state.current) * 0.11;
+        ring.style.transform = "rotateY(" + state.current + "deg)";
+        requestAnimationFrame(animate);
+      }
+
+      function startAutoRotate() {
+        clearInterval(state.autoRotateTimer);
+        state.autoRotateTimer = setInterval(function () {
+          snapTo(state.active + 1, false);
+        }, 12000);
+      }
+
+      function stopAutoRotate() {
+        clearInterval(state.autoRotateTimer);
+      }
+
+      scene.addEventListener("pointerdown", function (event) {
+        if (event.target.closest("a")) {
+          return;
+        }
+        state.dragging = true;
+        state.startX = event.clientX;
+        state.startTarget = state.target;
+        scene.setPointerCapture(event.pointerId);
+        stopAutoRotate();
+      });
+
+      scene.addEventListener("pointermove", function (event) {
+        if (!state.dragging) {
+          return;
+        }
+        const delta = event.clientX - state.startX;
+        state.target = state.startTarget + delta * 0.38;
+        updateControls(nearestIndex(state.target));
+      });
+
+      function endDrag(event) {
+        if (!state.dragging) {
+          return;
+        }
+        state.dragging = false;
+        if (event && typeof event.pointerId === "number") {
+          scene.releasePointerCapture(event.pointerId);
+        }
+        snapTo(nearestIndex(state.target), false);
+        startAutoRotate();
+      }
+
+      scene.addEventListener("pointerup", endDrag);
+      scene.addEventListener("pointercancel", endDrag);
+      scene.addEventListener("pointerleave", endDrag);
+
+      scene.addEventListener(
+        "wheel",
+        function (event) {
+          event.preventDefault();
+          stopAutoRotate();
+          state.target += event.deltaY * -0.14;
+          updateControls(nearestIndex(state.target));
+          clearTimeout(scene._wheelTimeout);
+          scene._wheelTimeout = setTimeout(function () {
+            snapTo(nearestIndex(state.target), false);
+            startAutoRotate();
+          }, 160);
+        },
+        { passive: false }
+      );
+
+      controls.forEach(function (button) {
+        button.addEventListener("click", function () {
+          stopAutoRotate();
+          snapTo(Number(button.dataset.index), false);
+          startAutoRotate();
+        });
+      });
+
+      window.addEventListener("resize", function () {
+        layoutPanels(false);
+        resizeStars();
+      });
+
+      layoutPanels(true);
+      animate();
+      startAutoRotate();
+
+      const starCanvas = document.getElementById("stars");
+      const ctx = starCanvas.getContext("2d");
+      let stars = [];
+      let pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+      function makeStars(count) {
+        stars = [];
+        for (let i = 0; i < count; i += 1) {
+          stars.push({
+            x: Math.random() * starCanvas.width,
+            y: Math.random() * starCanvas.height,
+            z: Math.random() * 0.8 + 0.2,
+            r: Math.random() * 1.8 + 0.4
+          });
+        }
+      }
+
+      function resizeStars() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        starCanvas.width = Math.round(window.innerWidth * dpr);
+        starCanvas.height = Math.round(window.innerHeight * dpr);
+        starCanvas.style.width = window.innerWidth + "px";
+        starCanvas.style.height = window.innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const starCount = clamp(Math.floor((window.innerWidth * window.innerHeight) / 9000), 70, 220);
+        makeStars(starCount);
+      }
+
+      function paintStars() {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        const dx = (pointer.x - window.innerWidth / 2) * 0.012;
+        const dy = (pointer.y - window.innerHeight / 2) * 0.012;
+        stars.forEach(function (star) {
+          const px = star.x + dx * star.z;
+          const py = star.y + dy * star.z;
+          const radius = star.r * star.z;
+          const glow = ctx.createRadialGradient(px, py, 0, px, py, radius * 3.6);
+          glow.addColorStop(0, "rgba(157, 234, 255, 0.9)");
+          glow.addColorStop(1, "rgba(157, 234, 255, 0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(px, py, radius * 3.4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(paintStars);
+      }
+
+      window.addEventListener("pointermove", function (event) {
+        pointer.x = event.clientX;
+        pointer.y = event.clientY;
+      });
+
+      resizeStars();
+      paintStars();
+    })();
+  </script>
+</body>
+</html>
