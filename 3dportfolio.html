@@ -379,12 +379,12 @@
       }
 
       .scene {
-        height: min(70vh, 580px);
+        height: min(65vh, 540px);
       }
 
       .panel {
-        width: min(92vw, 640px);
-        height: clamp(300px, 61vh, 460px);
+        width: min(94vw, 640px);
+        height: clamp(260px, 58vh, 430px);
         padding: 14px 13px;
       }
 
@@ -693,7 +693,9 @@
       }
 
       function layoutPanels(syncCurrent) {
-        state.radius = clamp(Math.round(window.innerWidth * 0.56), 290, 640);
+        var baseRadius = Math.round(window.innerWidth * 0.56);
+        var minRadius = window.innerWidth < 600 ? 220 : 280;
+        state.radius = clamp(baseRadius, minRadius, 640);
         panels.forEach(function (panel, idx) {
           panel.style.transform =
             "translate(-50%, -50%) rotateY(" + (idx * state.angle) + "deg) translateZ(" + state.radius + "px)";
